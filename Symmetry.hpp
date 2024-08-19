@@ -100,34 +100,6 @@ static StaticSymmetry allSymmetries[] = {
   StaticSymmetry::D8even,
 };
 
-
-
-void LifeState::JoinWSymChain(const LifeState &state, int x, int y,
-                   const std::vector<SymmetryTransform> &symChain) {
-  // instead of passing in the symmetry group {id, g_1, g_2,...g_n} and
-  // applying each to default orientation we pass in a "chain" of symmetries
-  // {h_1, ...h_n-1} that give the group when "chained together": g_j =
-  // product of h_1 thru h_j that way, we don't need to initialize a new
-  // LifeState for each symmetry.
-
-  LifeState transformed = state.Moved(x, y);
-
-  for (auto sym : symChain) {
-    transformed |= transformed.Transformed(sym);
-  }
-  *this |= transformed;
-}
-
-void LifeState::JoinWSymChain(const LifeState &state,
-                   const std::vector<SymmetryTransform> &symChain) {
-  LifeState transformed = state;
-
-  for (auto sym : symChain) {
-    transformed |= transformed.Transformed(sym);
-  }
-  *this |= transformed;
-}
-
 void LifeState::Transform(SymmetryTransform transf) {
   using enum SymmetryTransform;
 

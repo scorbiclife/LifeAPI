@@ -415,11 +415,6 @@ struct __attribute__((aligned(64))) LifeState {
     Transform(transf);
   }
 
-  void JoinWSymChain(const LifeState &state,
-                     const std::vector<SymmetryTransform> &symChain);
-  void JoinWSymChain(const LifeState &state, int x, int y,
-                     const std::vector<SymmetryTransform> &symChain);
-
   LifeState Halve() const;
   LifeState HalveX() const;
   LifeState HalveY() const;
@@ -898,14 +893,6 @@ public:
                                     bounds[2] + remainingwidth,
                                     bounds[3] + remainingheight);
   }
-
-  std::pair<int, int> CenterPoint() {
-    auto bounds = XYBounds();
-    auto w = bounds[2] - bounds[0];
-    auto h = bounds[3] - bounds[1];
-    return {bounds[0] + w/2, bounds[1] + h/2};
-  }
-
 
   LifeState ZOI() const {
     LifeState temp(UNINITIALIZED);
