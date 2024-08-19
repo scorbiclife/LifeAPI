@@ -122,6 +122,35 @@ struct __attribute__((aligned(64))) LifeState {
   LifeStateStripProxy operator[](const StripIndex column);
   const LifeStateStripConstProxy operator[](const StripIndex column) const;
 
+  template <unsigned radius> uint64_t GetPatch(std::pair<int, int> cell) const {
+    auto [x, y] = cell;
+
+    unsigned diameter = 2 * radius + 1;
+
+    uint64_t result = 0;
+
+    for (unsigned i = 0; i < diameter; i++) {
+      const unsigned c = (x + i + N - radius) % N;
+      uint64_t bits = std::rotr(state[c], y - radius) & ((1ULL << diameter) - 1);
+      result |= std::rotl(bits, i * diameter);
+    }
+
+    return result;
+  }
+
+  template <unsigned radius> void SetPatch(std::pair<int, int> cell, uint64_t value) {
+    auto [x, y] = cell;
+
+    unsigned diameter = 2 * radius + 1;
+
+    for (unsigned i = 0; i < diameter; i++) {
+      const unsigned c = (x + i + N - radius) % N;
+      uint64_t bits = std::rotr(value, i*diameter) & ((1ULL << diameter) - 1);
+      state[c] &= ~std::rotl((1ULL << diameter) - 1, y - radius);
+      state[c] |= std::rotl(bits, y - radius);
+    }
+  }
+
   std::pair<int, int> FindSetNeighbour(std::pair<int, int> cell) const {
     // This could obviously be done faster by extracting the result
     // directly from the columns, but this is probably good enough for now
