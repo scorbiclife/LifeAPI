@@ -556,6 +556,8 @@ public:
     }
   }
 
+  LifeState inline InteractionOffsets(const LifeState &other) const;
+
   // TODO: These could certainly be optimised
   void inline CountNeighbourhoodInteraction(LifeState &__restrict__ out1, LifeState &__restrict__ out2, LifeState &__restrict__ outMore) {
     LifeState bit3(UNINITIALIZED), bit2(UNINITIALIZED), bit1(UNINITIALIZED), bit0(UNINITIALIZED);
