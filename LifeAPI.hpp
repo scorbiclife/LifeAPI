@@ -164,29 +164,6 @@ struct __attribute__((aligned(64))) LifeState {
     return std::make_pair(-1, -1);
   }
 
-  unsigned CountNeighboursWithCenter(std::pair<int, int> cell) const {
-    if (cell.first > 0 && cell.first < N - 1) {
-      unsigned result = 0;
-      for (unsigned i = 0; i <= 2; i++) {
-        uint64_t column = state[cell.first + i - 1];
-        column = std::rotr(column, cell.second - 1);
-        result += std::popcount(column & 0b111);
-      }
-      return result;
-    } else {
-      unsigned result = 0;
-      for (unsigned i = 0; i <= 2; i++) {
-        uint64_t column = state[(cell.first + i + N - 1) % N];
-        column = std::rotr(column, cell.second - 1);
-        result += std::popcount(column & 0b111);
-      }
-      return result;
-    }
-  }
-
-  unsigned CountNeighbours(std::pair<int, int> cell) const {
-    return CountNeighboursWithCenter(cell) - (Get(cell) ? 1 : 0);
-  }
 
   uint64_t GetHash() const {
     uint64_t result = 0;
@@ -452,12 +429,12 @@ struct __attribute__((aligned(64))) LifeState {
   LifeState InvSkew() const;
 
 private:
-  void inline Add(uint64_t &b1, uint64_t &b0, const uint64_t &val) {
+  static void inline Add(uint64_t &b1, uint64_t &b0, const uint64_t &val) {
     b1 |= b0 & val;
     b0 ^= val;
   }
 
-  void inline Add(uint64_t &b2, uint64_t &b1, uint64_t &b0,
+  static void inline Add(uint64_t &b2, uint64_t &b1, uint64_t &b0,
                   const uint64_t &val) {
     uint64_t t_b2 = b0 & val;
 
@@ -466,12 +443,12 @@ private:
     b0 ^= val;
   }
 
-  void inline HalfAdd(uint64_t &out0, uint64_t &out1, const uint64_t ina, const uint64_t inb) {
+  static void inline HalfAdd(uint64_t &out0, uint64_t &out1, const uint64_t ina, const uint64_t inb) {
     out0 = ina ^ inb;
     out1 = ina & inb;
   }
 
-  void inline FullAdd(uint64_t &out0, uint64_t &out1, const uint64_t ina, const uint64_t inb, const uint64_t inc) {
+  static void inline FullAdd(uint64_t &out0, uint64_t &out1, const uint64_t ina, const uint64_t inb, const uint64_t inc) {
     uint64_t halftotal = ina ^ inb;
     out0 = halftotal ^ inc;
     uint64_t halfcarry1 = ina & inb;
@@ -528,7 +505,7 @@ public:
       return count == 3;
   }
 
-  void inline CountRows(LifeState &__restrict__ bit0, LifeState &__restrict__ bit1) {
+  void inline CountRows(LifeState &__restrict__ bit0, LifeState &__restrict__ bit1) const {
     for (int i = 0; i < N; i++) {
       uint64_t a = state[i];
       uint64_t l = std::rotl(a, 1);
@@ -539,7 +516,7 @@ public:
     }
   }
 
-  void inline CountNeighbourhood(LifeState &__restrict__ bit3, LifeState &__restrict__ bit2, LifeState &__restrict__ bit1, LifeState &__restrict__ bit0) {
+  void inline CountNeighbourhood(LifeState &__restrict__ bit3, LifeState &__restrict__ bit2, LifeState &__restrict__ bit1, LifeState &__restrict__ bit0) const {
     LifeState col0(UNINITIALIZED), col1(UNINITIALIZED);
     CountRows(col0, col1);
 
@@ -583,7 +560,7 @@ public:
   LifeState inline InteractionOffsets(const LifeState &other) const;
 
   // TODO: These could certainly be optimised
-  void inline CountNeighbourhoodInteraction(LifeState &__restrict__ out1, LifeState &__restrict__ out2, LifeState &__restrict__ outMore) {
+  void inline InteractionCounts(LifeState &__restrict__ out1, LifeState &__restrict__ out2, LifeState &__restrict__ outMore) const {
     LifeState bit3(UNINITIALIZED), bit2(UNINITIALIZED), bit1(UNINITIALIZED), bit0(UNINITIALIZED);
     CountNeighbourhood(bit3, bit2, bit1, bit0);
     out1 = ~*this & ~bit3 & ~bit2 & ~bit1 & bit0;
@@ -591,12 +568,30 @@ public:
     outMore = ~*this & (bit3 | bit2 | (bit1 & bit0));
   }
 
-  void inline CountNeighbourhoodInteractionUpdate(LifeState &__restrict__ out1, LifeState &__restrict__ out2, LifeState &__restrict__ outMore) {
-    LifeState bit3(UNINITIALIZED), bit2(UNINITIALIZED), bit1(UNINITIALIZED), bit0(UNINITIALIZED);
-    CountNeighbourhood(bit3, bit2, bit1, bit0);
-    out1 |= ~*this & ~bit3 & ~bit2 & ~bit1 & bit0;
-    out2 |= ~*this & ~bit3 & ~bit2 & bit1 & ~bit0;
-    outMore |= ~*this & (bit3 | bit2 | (bit1 & bit0));
+
+
+  unsigned CountNeighboursWithCenter(std::pair<int, int> cell) const {
+    if (cell.first > 0 && cell.first < N - 1) {
+      unsigned result = 0;
+      for (unsigned i = 0; i <= 2; i++) {
+        uint64_t column = state[cell.first + i - 1];
+        column = std::rotr(column, cell.second - 1);
+        result += std::popcount(column & 0b111);
+      }
+      return result;
+    } else {
+      unsigned result = 0;
+      for (unsigned i = 0; i <= 2; i++) {
+        uint64_t column = state[(cell.first + i + N - 1) % N];
+        column = std::rotr(column, cell.second - 1);
+        result += std::popcount(column & 0b111);
+      }
+      return result;
+    }
+  }
+
+  unsigned CountNeighbours(std::pair<int, int> cell) const {
+    return CountNeighboursWithCenter(cell) - (Get(cell) ? 1 : 0);
   }
 
   static LifeState Parse(const std::string &rle);
@@ -614,7 +609,7 @@ public:
     return result;
   }
 
-  consteval static LifeState ConstantParse(const std::string &rle) {
+  constexpr static LifeState ConstantParse(const std::string &rle) {
     LifeState result;
 
     char ch = 0;
@@ -667,7 +662,7 @@ public:
     return result;
   }
 
-  consteval static LifeState ConstantParse(const std::string &rle, int dx, int dy) {
+  constexpr static LifeState ConstantParse(const std::string &rle, int dx, int dy) {
     return LifeState::ConstantParse(rle).Moved(dx, dy);
   }
 
@@ -744,17 +739,14 @@ public:
 
   std::vector<std::pair<int, int>> OnCells() const;
 
-  LifeState FirstCell() const {
-    std::pair<int, int> pair = FirstOn();
-    LifeState result;
-    result.Set(pair.first, pair.second);
-    return result;
-  }
-
   static constexpr LifeState Cell(std::pair<int, int> cell) {
     LifeState result;
     result.Set(cell.first, cell.second);
     return result;
+  }
+
+  LifeState FirstCell() const {
+    return LifeState::Cell(FirstOn());
   }
 
   static constexpr LifeState SolidRect(int x, int y, int w, int h) {
