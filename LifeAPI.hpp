@@ -350,12 +350,6 @@ struct __attribute__((aligned(64))) LifeState {
     return Moved(vec.first, vec.second);
   }
 
-  void AlignWith(const LifeState &other) {
-    auto othercorner = other.XYBounds();
-    auto self = XYBounds();
-    Move(-self[0] + othercorner[0], -self[1] + othercorner[1]);
-  }
-
   void Reverse(unsigned idxS, unsigned idxE) {
     for (unsigned i = 0; idxS + 2*i < idxE; i++) {
       int l = idxS + i;
@@ -1029,6 +1023,11 @@ public:
 
   LifeState Match(const LifeState &live) const {
     return MatchLiveAndDead(live, live.GetBoundary());
+  }
+
+  void AlignWith(const LifeState &other) {
+    auto offset = Match(other).FirstOn();
+    Move(-offset.first, -offset.second);
   }
 
   LifeState Match(const LifeTarget &target) const;

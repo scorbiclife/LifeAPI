@@ -53,17 +53,9 @@ struct LifeHistoryState {
 
   void Move(std::pair<int, int> vec) { Move(vec.first, vec.second); }
 
-  // void AlignWith(const LifeHistoryState &other) {
-  //   auto othercorner =
-  //       (other.state & ~other.marked & ~other.original).FirstOn();
-  //   auto self = (state & ~marked & ~original).FirstOn();
-  //   Move(-self.first + othercorner.first, -self.second + othercorner.second);
-  // }
-
   void AlignWith(const LifeState &other) {
-    auto othercorner = other.XYBounds();
-    auto self = state.XYBounds();
-    Move(-self[0] + othercorner[0], -self[1] + othercorner[1]);
+    auto offset = state.Match(other).FirstOn();
+    Move(-offset.first, -offset.second);
   }
 };
 
