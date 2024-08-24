@@ -69,7 +69,7 @@ std::string GenericRLE(auto&& cellchar, bool flushtrailing = false) {
 //   });
 // }
 
-std::string RowRLE(std::vector<LifeState> &row) {
+inline std::string RowRLE(std::vector<LifeState> &row) {
   const unsigned spacing = 70;
 
   std::stringstream result;

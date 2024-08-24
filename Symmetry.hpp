@@ -42,7 +42,7 @@ static SymmetryTransform allTransforms[] = {
   SymmetryTransform::ReflectAcrossYeqNegXP1
 };
 
-SymmetryTransform TransformInverse(SymmetryTransform transf) {
+inline SymmetryTransform TransformInverse(SymmetryTransform transf) {
   switch (transf) {
   case SymmetryTransform::Rotate90Even:  return SymmetryTransform::Rotate270Even;
   case SymmetryTransform::Rotate90:      return SymmetryTransform::Rotate270;
@@ -100,7 +100,7 @@ static StaticSymmetry allSymmetries[] = {
   StaticSymmetry::D8even,
 };
 
-void LifeState::Transform(SymmetryTransform transf) {
+inline void LifeState::Transform(SymmetryTransform transf) {
   using enum SymmetryTransform;
 
   switch (transf) {
@@ -400,7 +400,7 @@ inline std::pair<int, int> HalveOffset(const StaticSymmetry sym,
   }
 }
 
-StaticSymmetry SymmetryFromString(const std::string &name) {
+inline StaticSymmetry SymmetryFromString(const std::string &name) {
   std::string start = name.substr(0, 2);
   std::string rest = name.substr(2);
   if (start == "D2") {
@@ -463,7 +463,7 @@ StaticSymmetry SymmetryFromString(const std::string &name) {
   return StaticSymmetry::C1;
 }
 
-std::string SymmetryToString(StaticSymmetry sym) {
+inline std::string SymmetryToString(StaticSymmetry sym) {
   switch (sym) {
   case StaticSymmetry::C1:
     return "C1";
@@ -510,7 +510,7 @@ std::string SymmetryToString(StaticSymmetry sym) {
   }
 }
 
-std::vector<SymmetryTransform> CharToTransforms(char ch) {
+inline std::vector<SymmetryTransform> CharToTransforms(char ch) {
   switch (ch) {
   case '.':
     return SymmetryGroupFromEnum(StaticSymmetry::C1);
@@ -560,7 +560,7 @@ inline std::pair<int, int> PerpComponent(SymmetryTransform transf,
   }
 }
 
-LifeState Symmetricize(const LifeState &state, StaticSymmetry sym,
+inline LifeState Symmetricize(const LifeState &state, StaticSymmetry sym,
                                  std::pair<int, int> offset) {
   switch (sym) {
   case StaticSymmetry::C1:
@@ -653,7 +653,7 @@ LifeState Symmetricize(const LifeState &state, StaticSymmetry sym,
 
 // On intel there is a single instruction for this
 // Taken from Hacker's Delight
-uint64_t compress_right(uint64_t x, uint64_t m) {
+inline uint64_t compress_right(uint64_t x, uint64_t m) {
    uint64_t mk, mp, mv, t;
    int i;
 
@@ -724,7 +724,7 @@ inline LifeState LifeState::InvSkew() const {
   return result;
 }
 
-LifeState IntersectingOffsets(const LifeState &pat1, const LifeState &pat2,
+inline LifeState IntersectingOffsets(const LifeState &pat1, const LifeState &pat2,
                               StaticSymmetry sym) {
     using enum SymmetryTransform;
     LifeState transformed;
@@ -765,9 +765,9 @@ LifeState IntersectingOffsets(const LifeState &pat1, const LifeState &pat2,
     }
   }
 
-  LifeState IntersectingOffsets(const LifeState &active, StaticSymmetry sym) {
-    return IntersectingOffsets(active, active, sym);
-  }
+inline LifeState IntersectingOffsets(const LifeState &active, StaticSymmetry sym) {
+  return IntersectingOffsets(active, active, sym);
+}
 
 uint64_t LifeState::GetOctoHash() const {
     uint64_t result = 0;
@@ -782,7 +782,7 @@ uint64_t LifeState::GetOctoHash() const {
     return result;
   }
 
-LifeState LifeState::MatchesLiveAndDeadSym(const LifeState &live, const LifeState &dead) const {
+inline LifeState LifeState::MatchesLiveAndDeadSym(const LifeState &live, const LifeState &dead) const {
     LifeState result;
 
     for (auto t : allTransforms) {

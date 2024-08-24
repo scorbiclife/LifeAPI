@@ -13,9 +13,9 @@
 const int N = 64;
 
 namespace PRNG {
-  std::random_device rd;
-  std::mt19937_64 e2(rd());
-  std::uniform_int_distribution<uint64_t> dist(std::llround(std::pow(2,61)), std::llround(std::pow(2,62)));
+  static std::random_device rd;
+  static std::mt19937_64 e2(rd());
+  static std::uniform_int_distribution<uint64_t> dist(std::llround(std::pow(2,61)), std::llround(std::pow(2,62)));
 } // namespace PRNG
 
 // Taken from https://github.com/wangyi-fudan/wyhash
@@ -119,8 +119,8 @@ struct __attribute__((aligned(64))) LifeState {
     }
   }
 
-  LifeStateStripProxy operator[](const StripIndex column);
-  const LifeStateStripConstProxy operator[](const StripIndex column) const;
+  inline LifeStateStripProxy operator[](const StripIndex column);
+  inline const LifeStateStripConstProxy operator[](const StripIndex column) const;
 
   template <unsigned radius> uint64_t GetPatch(std::pair<int, int> cell) const {
     auto [x, y] = cell;
@@ -175,7 +175,7 @@ struct __attribute__((aligned(64))) LifeState {
     return result;
   }
 
-  uint64_t GetOctoHash() const;
+  inline uint64_t GetOctoHash() const;
 
   unsigned GetPop() const {
     unsigned pop = 0;
@@ -394,7 +394,7 @@ struct __attribute__((aligned(64))) LifeState {
 
   void Transpose() { Transpose(true); }
 
-  void Transform(SymmetryTransform transf);
+  inline void Transform(SymmetryTransform transf);
 
   LifeState Mirrored() const {
     LifeState result = *this;
@@ -414,6 +414,9 @@ struct __attribute__((aligned(64))) LifeState {
     Move(dx, dy);
     Transform(transf);
   }
+
+  inline std::vector<LifeState> SymmetryOrbit() const;
+  inline std::vector<SymmetryTransform> SymmetryOrbitRepresentatives() const;
 
   LifeState Halve() const;
   LifeState HalveX() const;
@@ -483,7 +486,7 @@ private:
   }
 
 public:
-  void Step();
+  inline void Step();
 
   void Step(unsigned numIters) {
     for (unsigned i = 0; i < numIters; i++) {
@@ -588,7 +591,7 @@ public:
     return CountNeighboursWithCenter(cell) - (Get(cell) ? 1 : 0);
   }
 
-  static LifeState Parse(const std::string &rle);
+  static inline LifeState Parse(const std::string &rle);
 
   static LifeState Parse(const std::string &rle, int dx, int dy,
                          SymmetryTransform trans) {
@@ -660,8 +663,8 @@ public:
     return LifeState::ConstantParse(rle).Moved(dx, dy);
   }
 
-  void Print() const;
-  std::string RLE() const;
+  inline void Print() const;
+  inline std::string RLE() const;
 
   friend std::ostream& operator<<(std::ostream& os, LifeState const& self) {
     return os << self.RLE();
@@ -731,7 +734,7 @@ public:
   //   }
   // }
 
-  std::vector<std::pair<int, int>> OnCells() const;
+  inline std::vector<std::pair<int, int>> OnCells() const;
 
   static constexpr LifeState Cell(std::pair<int, int> cell) {
     LifeState result;
@@ -1006,7 +1009,7 @@ public:
     return zoi;
   }
 
-  LifeState Convolve(const LifeState &other) const;
+  inline LifeState Convolve(const LifeState &other) const;
 
   LifeState MatchLive(const LifeState &live) const {
     LifeState invThis = ~*this;
@@ -1303,7 +1306,7 @@ struct LifeStateStrip {
     return all == 0;
   }
 
-  friend std::ostream &operator<<(std::ostream &os, LifeStateStrip const &self);
+  inline friend std::ostream &operator<<(std::ostream &os, LifeStateStrip const &self);
 };
 
 struct LifeStateStripProxy {
