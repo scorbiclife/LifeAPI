@@ -556,13 +556,41 @@ public:
 
   LifeState inline InteractionOffsets(const LifeState &other) const;
 
-  // TODO: These could certainly be optimised
+  // Count OFF cells with exactly 1 neighbour, exactly 2 neighbours, and all others
   void inline InteractionCounts(LifeState &__restrict__ out1, LifeState &__restrict__ out2, LifeState &__restrict__ outMore) const {
-    LifeState bit3(UNINITIALIZED), bit2(UNINITIALIZED), bit1(UNINITIALIZED), bit0(UNINITIALIZED);
-    CountNeighbourhood(bit3, bit2, bit1, bit0);
-    out1 = ~*this & ~bit3 & ~bit2 & ~bit1 & bit0;
-    out2 = ~*this & ~bit3 & ~bit2 & bit1 & ~bit0;
-    outMore = ~*this & (bit3 | bit2 | (bit1 & bit0));
+    LifeState col0(UNINITIALIZED), col1(UNINITIALIZED);
+    CountRows(col0, col1);
+
+    for (int i = 0; i < N; i++) {
+      int idxU;
+      int idxB;
+      if (i == 0)
+        idxU = N - 1;
+      else
+        idxU = i - 1;
+
+      if (i == N - 1)
+        idxB = 0;
+      else
+        idxB = i + 1;
+
+      uint64_t u_on1 = col1.state[idxU];
+      uint64_t u_on0 = col0.state[idxU];
+      uint64_t c_on1 = col1.state[i];
+      uint64_t c_on0 = col0.state[i];
+      uint64_t l_on1 = col1.state[idxB];
+      uint64_t l_on0 = col0.state[idxB];
+
+      uint64_t final_sum, final_carry;
+      FullAdd(final_sum, final_carry, u_on0, c_on0, l_on0);
+
+      uint64_t carry_sum, carry_carry;
+      FullAdd(carry_sum, carry_carry, u_on1, c_on1, l_on1);
+
+      out1[i] = ~state[i] & ~carry_carry & final_sum & ~carry_sum & ~final_carry;
+      out2[i] = ~state[i] & ~carry_carry & ~final_sum & (carry_sum ^ final_carry);
+      outMore[i] = ~state[i] & ~out2[i] & (final_carry | carry_sum | carry_carry);
+    }
   }
 
 
