@@ -554,8 +554,6 @@ public:
     }
   }
 
-  LifeState inline InteractionOffsets(const LifeState &other) const;
-
   // Count OFF cells with exactly 1 neighbour, exactly 2 neighbours, and all others
   void inline InteractionCounts(LifeState &__restrict__ out1, LifeState &__restrict__ out2, LifeState &__restrict__ outMore) const {
     LifeState col0(UNINITIALIZED), col1(UNINITIALIZED);
@@ -593,8 +591,6 @@ public:
     }
   }
 
-
-
   unsigned CountNeighboursWithCenter(std::pair<int, int> cell) const {
     if (cell.first > 0 && cell.first < N - 1) {
       unsigned result = 0;
@@ -617,6 +613,35 @@ public:
 
   unsigned CountNeighbours(std::pair<int, int> cell) const {
     return CountNeighboursWithCenter(cell) - (Get(cell) ? 1 : 0);
+  }
+
+  LifeState InteractionOffsets(const LifeState &other) const {
+    const LifeState &a_state = *this;
+    LifeState a_bit3(UNINITIALIZED), a_bit2(UNINITIALIZED), a_bit1(UNINITIALIZED), a_bit0(UNINITIALIZED);
+    CountNeighbourhood(a_bit3, a_bit2, a_bit1, a_bit0);
+    LifeState a_out1 = ~a_bit3 & ~a_bit2 & ~a_bit1 &  a_bit0;
+    LifeState a_out2 = ~a_bit3 & ~a_bit2 &  a_bit1 & ~a_bit0;
+    LifeState a_out3 = ~a_bit3 & ~a_bit2 &  a_bit1 &  a_bit0;
+
+    LifeState b_state = other.Mirrored();
+    LifeState b_bit3(UNINITIALIZED), b_bit2(UNINITIALIZED), b_bit1(UNINITIALIZED), b_bit0(UNINITIALIZED);
+    b_state.CountNeighbourhood(b_bit3, b_bit2, b_bit1, b_bit0);
+    LifeState b_out1 = ~b_bit3 & ~b_bit2 & ~b_bit1 &  b_bit0;
+    LifeState b_out2 = ~b_bit3 & ~b_bit2 &  b_bit1 & ~b_bit0;
+    LifeState b_out3 = ~b_bit3 & ~b_bit2 &  b_bit1 &  b_bit0;
+
+    return
+      // Overlaps
+      a_state.Convolve(b_state) |
+      // Positions that cause births
+      (a_out1 & ~a_state).Convolve(b_out2 & ~b_state) |
+      (b_out1 & ~b_state).Convolve(a_out2 & ~a_state) |
+      // positions that cause overcrowding
+      (a_out3 & a_state).Convolve((b_bit3 | b_bit2 | b_bit1) & ~b_state) |
+      ((a_bit2 | a_bit3) & a_state).Convolve((b_bit3 | b_bit2 | b_bit1 | b_bit0) & ~b_state) |
+      (b_out3 & b_state).Convolve((a_bit3 | a_bit2 | a_bit1) & ~a_state) |
+      ((b_bit2 | b_bit3) & b_state).Convolve((a_bit3 | a_bit2 | a_bit1 | a_bit0) & ~a_state)
+      ;
   }
 
   static inline LifeState Parse(const std::string &rle);
