@@ -792,3 +792,37 @@ inline LifeState LifeState::MatchesLiveAndDeadSym(const LifeState &live, const L
 
     return result;
   }
+
+inline std::vector<LifeState> LifeState::SymmetryOrbit() const {
+  std::vector<LifeState> result;
+  using enum SymmetryTransform;
+  for (auto t :
+       {Identity, ReflectAcrossX, ReflectAcrossYeqX, ReflectAcrossY,
+        ReflectAcrossYeqNegXP1, Rotate90, Rotate270, Rotate180OddBoth}) {
+    LifeState shifted = Transformed(t);
+    std::array<int, 4> bounds = shifted.XYBounds();
+    shifted.Move(-bounds[0], -bounds[1]);
+    if (std::find(result.begin(), result.end(), shifted) == result.end()) {
+      result.push_back(shifted);
+    }
+  }
+  return result;
+}
+
+inline std::vector<SymmetryTransform> LifeState::SymmetryOrbitRepresentatives() const {
+  std::vector<LifeState> seen;
+  std::vector<SymmetryTransform> transforms;
+  using enum SymmetryTransform;
+  for (auto t :
+       {Identity, ReflectAcrossX, ReflectAcrossYeqX, ReflectAcrossY,
+        ReflectAcrossYeqNegXP1, Rotate90, Rotate270, Rotate180OddBoth}) {
+    LifeState shifted = Transformed(t);
+    std::array<int, 4> bounds = shifted.XYBounds();
+    shifted.Move(-bounds[0], -bounds[1]);
+    if (std::find(seen.begin(), seen.end(), shifted) == seen.end()) {
+      seen.push_back(shifted);
+      transforms.push_back(t);
+    }
+  }
+  return transforms;
+}
