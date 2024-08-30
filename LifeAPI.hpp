@@ -1253,7 +1253,12 @@ inline bool LifeState::Contains(const LifeTarget &target, int dx,
 }
 
 inline bool LifeState::Contains(const LifeTarget &target) const {
-  return Contains(target.wanted) && AreDisjoint(target.unwanted);
+  uint64_t differences = 0;
+  for (unsigned i = 0; i < N; i++) {
+    uint64_t difference = (state[i] ^ target.wanted[i]) & (target.wanted[i] | target.unwanted[i]);
+    differences |= difference;
+  }
+  return differences == 0;
 }
 
 inline LifeState LifeState::Match(const LifeTarget &target) const {
