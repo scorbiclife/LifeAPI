@@ -5,19 +5,19 @@
 
 // This uses lifelib "layers" which do not match Golly's state names,
 // so the parsing has to adjust for this.
-struct LifeHistoryState {
+struct LifeHistory {
   LifeState state;
   LifeState history;
   LifeState marked;
   LifeState original;
 
-  LifeHistoryState() = default;
-  LifeHistoryState(const LifeState &state, const LifeState &history,
+  LifeHistory() = default;
+  LifeHistory(const LifeState &state, const LifeState &history,
                    const LifeState &marked, const LifeState &original)
       : state{state}, history{history}, marked{marked}, original{original} {};
-  LifeHistoryState(const LifeState &state, const LifeState &history, const LifeState &marked)
+  LifeHistory(const LifeState &state, const LifeState &history, const LifeState &marked)
       : state{state}, history{history}, marked{marked}, original{LifeState()} {};
-  LifeHistoryState(const LifeState &state, const LifeState &history)
+  LifeHistory(const LifeState &state, const LifeState &history)
       : state{state}, history{history}, marked{LifeState()},
         original{LifeState()} {};
 
@@ -25,7 +25,7 @@ struct LifeHistoryState {
   std::string RLEWHeader() const {
     return "x = 0, y = 0, rule = LifeHistory\n" + RLE();
   }
-  friend std::ostream& operator<<(std::ostream& os, LifeHistoryState const& self) {
+  friend std::ostream& operator<<(std::ostream& os, LifeHistory const& self) {
     return os << self.RLEWHeader();
   }
 
@@ -41,8 +41,8 @@ struct LifeHistoryState {
     }
   }
 
-  static LifeHistoryState Parse(const std::string &s);
-  static LifeHistoryState ParseBellman(const std::string &s);
+  static LifeHistory Parse(const std::string &s);
+  static LifeHistory ParseBellman(const std::string &s);
 
   void Move(int x, int y) {
     state.Move(x, y);
@@ -59,7 +59,7 @@ struct LifeHistoryState {
   }
 };
 
-std::string LifeHistoryState::RLE() const {
+std::string LifeHistory::RLE() const {
   return GenericRLE([&](int x, int y) -> char {
     unsigned val = state.Get(x, y) + (history.Get(x, y) << 1) + (marked.Get(x, y) << 2) + (original.Get(x, y) << 3);
 
@@ -67,8 +67,8 @@ std::string LifeHistoryState::RLE() const {
   });
 }
 
-LifeHistoryState LifeHistoryState::Parse(const std::string &rle) {
-  return GenericParse<LifeHistoryState>(rle, [&](LifeHistoryState &result, char ch, int x, int y) -> void {
+LifeHistory LifeHistory::Parse(const std::string &rle) {
+  return GenericParse<LifeHistory>(rle, [&](LifeHistory &result, char ch, int x, int y) -> void {
     switch(ch) {
     case 'A':
       result.state.Set(x, y);
@@ -90,8 +90,9 @@ LifeHistoryState LifeHistoryState::Parse(const std::string &rle) {
     }
   });
 }
-LifeHistoryState LifeHistoryState::ParseBellman(const std::string &rle) {
-  return GenericParse<LifeHistoryState>(rle, [&](LifeHistoryState &result, char ch, int x, int y) -> void {
+
+LifeHistory LifeHistory::ParseBellman(const std::string &rle) {
+  return GenericParse<LifeHistory>(rle, [&](LifeHistory &result, char ch, int x, int y) -> void {
     switch(ch) {
     case 'C':
       result.state.Set(x, y);

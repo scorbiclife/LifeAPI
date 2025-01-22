@@ -1,3 +1,8 @@
+#pragma once
+
+#include <cstdint>
+#include <array>
+
 // GCC
 #ifdef __GNUC__
 #ifndef __clang__

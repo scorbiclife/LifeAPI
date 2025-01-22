@@ -1,18 +1,21 @@
 #pragma once
 
+#include <sstream>
+
 #include "LifeAPI.hpp"
 
+// TODO: Could be specialised to use bit operations to get runs instead of doing one cell at a time
 std::string GenericRLE(auto&& cellchar, bool flushtrailing = false) {
   std::stringstream result;
 
   unsigned eol_count = 0;
 
   for (unsigned j = 0; j < 64; j++) {
-    char last_val = cellchar((0 - (N / 2) + N) % N, ((signed)j - 32 + 64) % 64);
+    char last_val = cellchar(torus_wrap(0 + (N / 2)), torus_wrap(j + 32));
     unsigned run_count = 0;
 
     for (unsigned i = 0; i < N; i++) {
-      char val = cellchar(((signed)i - (N / 2) + N) % N, ((signed)j - 32 + 64) % 64);
+      char val = cellchar(torus_wrap(i + (N / 2)), torus_wrap(j + 32));
 
       // Flush linefeeds if we find a live cell
       if (val != '.' && val != 'b' && eol_count > 0) {
@@ -61,13 +64,6 @@ std::string GenericRLE(auto&& cellchar, bool flushtrailing = false) {
 
   return result.str();
 }
-
-// std::string LifeBellmanRLEFor(const LifeState &state, const LifeState &marked) {
-//   return GenericRLE([&](int x, int y) -> char {
-//     const std::array<char, 4> table = {'.', 'A', 'E', 'C'};
-//     return table[state.Get(x, y) + (marked.Get(x, y) << 1)];
-//   });
-// }
 
 inline std::string RowRLE(std::vector<LifeState> &row) {
   const unsigned spacing = 70;
@@ -152,7 +148,6 @@ template<typename T> T GenericParse(const std::string &rle, auto&& interpretcell
     if(line[0] != 'x')
       noheader += line;
   }
-
 
   T result;
 
