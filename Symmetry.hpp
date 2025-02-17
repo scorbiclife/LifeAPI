@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "LifeAPI.hpp"
 
 enum struct SymmetryTransform : uint32_t {
