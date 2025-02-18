@@ -26,11 +26,6 @@ constexpr uint64_t reverse_uint64_t(uint64_t x) {
 #endif
 #endif
 
-// MSVC
-#ifdef __MSC_VER
-#include <intrin.h>
-#endif
-
 constexpr unsigned longest_run_uint64_t(uint64_t x) {
   if(x == 0)
     return 0;
